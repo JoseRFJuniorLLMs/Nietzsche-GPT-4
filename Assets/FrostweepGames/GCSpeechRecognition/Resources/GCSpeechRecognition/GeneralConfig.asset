@@ -12,4 +12,4 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 02d943e29c406a74b91070bb2c77c632, type: 3}
   m_Name: GeneralConfig
   m_EditorClassIdentifier: 
-  showWelcomeDialogAtStartup: 1
+  showWelcomeDialogAtStartup: 0

@@ -2,10 +2,20 @@
 using UnityEngine;
 using UnityEngine.UI;
 
+using System.Threading.Tasks;
+using OpenAI;
+
 namespace FrostweepGames.Plugins.GoogleCloud.SpeechRecognition.Examples
 {
 	public class GCSR_DoCommandsExample : MonoBehaviour
 	{
+		//OpenAI
+	    
+		private Text resultText;
+		private OpenAIApi openai = new OpenAIApi();
+		private string userInput;
+		private string Instruction = "Act as a random stranger in a chat room and reply to the questions.\nQ: ";
+
 		private GCSpeechRecognition _speechRecognition;
 
 		private Image _speechRecognitionState;
@@ -17,34 +27,34 @@ namespace FrostweepGames.Plugins.GoogleCloud.SpeechRecognition.Examples
 
 		private Text _resultText;
 
-		private Dropdown _languageDropdown;
-
 		private RectTransform _objectForCommand;
 
 		private void Start()
 		{
+			//OpenAI
+			//SendReplyAsync("Initial prompt");
+
+
 			_speechRecognition = GCSpeechRecognition.Instance;
 			_speechRecognition.RecognizeSuccessEvent += RecognizeSuccessEventHandler;
 			_speechRecognition.RecognizeFailedEvent += RecognizeFailedEventHandler;
-
 			_speechRecognition.FinishedRecordEvent += FinishedRecordEventHandler;
 			_speechRecognition.StartedRecordEvent += StartedRecordEventHandler;
 			_speechRecognition.RecordFailedEvent += RecordFailedEventHandler;
-
 			_speechRecognition.EndTalkigEvent += EndTalkigEventHandler;
 
 			_startRecordButton = transform.Find("Canvas/Button_StartRecord").GetComponent<Button>();
 			_stopRecordButton = transform.Find("Canvas/Button_StopRecord").GetComponent<Button>();
-
 			_speechRecognitionState = transform.Find("Canvas/Image_RecordState").GetComponent<Image>();
-
 			_resultText = transform.Find("Canvas/Text_Result").GetComponent<Text>();
-
-			_commandsInputField = transform.Find("Canvas/InputField_Commands").GetComponent<InputField>();
-
-			_languageDropdown = transform.Find("Canvas/Dropdown_Language").GetComponent<Dropdown>();
-
-			_objectForCommand = transform.Find("Canvas/Panel_PointArena/Image_Point").GetComponent<RectTransform>();
+	
+			// select first microphone device
+			if (_speechRecognition.HasConnectedMicrophoneDevices())
+			{
+				_speechRecognition.SetMicrophoneDevice(_speechRecognition.GetMicrophoneDevices()[0]);
+			}
+			// start recording automatically
+			_speechRecognition.StartRecord(withVoiceDetection: true);
 
 			_startRecordButton.onClick.AddListener(StartRecordButtonOnClickHandler);
 			_stopRecordButton.onClick.AddListener(StopRecordButtonOnClickHandler);
@@ -53,24 +63,29 @@ namespace FrostweepGames.Plugins.GoogleCloud.SpeechRecognition.Examples
 			_stopRecordButton.interactable = false;
 			_speechRecognitionState.color = Color.yellow;
 
-			_languageDropdown.ClearOptions();
-
 			_speechRecognition.RequestMicrophonePermission(null);
-
-			for (int i = 0; i < Enum.GetNames(typeof(Enumerators.LanguageCode)).Length; i++)
-			{
-				_languageDropdown.options.Add(new Dropdown.OptionData(((Enumerators.LanguageCode)i).Parse()));
-			}
-
-			_languageDropdown.value = _languageDropdown.options.IndexOf(_languageDropdown.options.Find(x => x.text == Enumerators.LanguageCode.en_GB.Parse()));
-
-
-			// select first microphone device
-			if (_speechRecognition.HasConnectedMicrophoneDevices())
-			{
-				_speechRecognition.SetMicrophoneDevice(_speechRecognition.GetMicrophoneDevices()[0]);
-			}
 		}
+/**
+		private async Task<string> SendReplyAsync(string prompt)
+		{
+			Instruction += $"{resultText.text}\nA: ";
+
+			// Complete the instruction
+			var completionResponse = await openai.CreateCompletion(new CreateCompletionRequest()
+			{
+				Prompt = Instruction,
+				Model = "text-davinci-003",
+				MaxTokens = 4097 - Instruction.Length - 1
+			});
+
+			var resposta = completionResponse.Choices[0].Text;
+			Instruction += $"{resposta}\nQ: ";
+
+			Debug.Log("Resposta gpt3: " + resposta);
+
+			return resposta;
+		}
+**/
 
 		private void OnDestroy()
 		{
@@ -131,7 +146,7 @@ namespace FrostweepGames.Plugins.GoogleCloud.SpeechRecognition.Examples
 				return;
 
 			RecognitionConfig config = RecognitionConfig.GetDefault();
-			config.languageCode = ((Enumerators.LanguageCode)_languageDropdown.value).Parse();
+			config.languageCode = Enumerators.LanguageCode.en_US.Parse();
 			config.audioChannelCount = clip.channels;
 			// configure other parameters of the config if need
 
@@ -143,79 +158,52 @@ namespace FrostweepGames.Plugins.GoogleCloud.SpeechRecognition.Examples
 				},
 				//audio = new RecognitionAudioUri() // for Google Cloud Storage object
 				//{
-				//	uri = "gs://bucketName/object_name"
+				//    uri = "gs://bucketName/object_name"
 				//},
 				config = config
 			};
-
 			_speechRecognition.Recognize(recognitionRequest);
 		}
+
 
 		private void RecognizeFailedEventHandler(string error)
 		{
 			_resultText.text = "Recognize Failed: " + error;
 		}
 
-		private void RecognizeSuccessEventHandler(RecognitionResponse recognitionResponse)
-		{
-			_resultText.text = "Detected: ";
 
-			string[] commands = _commandsInputField.text.Split(',');
+
+		private async void RecognizeSuccessEventHandler(RecognitionResponse recognitionResponse)
+		{
+			string resultText = "Detected: ";
 
 			foreach (var result in recognitionResponse.results)
 			{
 				foreach (var alternative in result.alternatives)
 				{
-					_resultText.text += "\nIncome text: " + alternative.transcript;
-
-					foreach (var command in commands)
-					{
-						if (command.Trim(' ').ToLowerInvariant() == alternative.transcript.Trim(' ').ToLowerInvariant())
-						{
-							_resultText.text += "\nDid command: " + command + ";"; // debug result command
-
-							DoCommand(command.ToLowerInvariant().TrimEnd(' ').TrimStart(' '));
-						}
-					}
+					resultText += alternative.transcript;
 				}
 			}
-		}
 
-		private void DoCommand(string command)
-		{
-			float speed = 10;
-			float scaleSpeed = 0.1f;
+			_resultText.text = resultText;
+			Debug.Log(resultText);
 
-			switch (command)
+			Instruction += $"{resultText}\nA: ";
+
+			var completionResponse = await openai.CreateCompletion(new CreateCompletionRequest()
 			{
-				case "move up":
-					_objectForCommand.anchoredPosition += Vector2.up * speed;
-					break;
-				case "move down":
-					_objectForCommand.anchoredPosition += Vector2.down * speed;
-					break;
-				case "move left":
-					_objectForCommand.anchoredPosition += Vector2.left * speed;
-					break;
-				case "move right":
-					_objectForCommand.anchoredPosition += Vector2.right * speed;
-					break;
-				case "scale up":
-					_objectForCommand.localScale += Vector3.one * scaleSpeed;
-					break;
-				case "scale down":
-					_objectForCommand.localScale -= Vector3.one * scaleSpeed;
-					break;
-				case "rotate left":
-					_objectForCommand.Rotate(0, 0, 30);
-					break;
-				case "rotate right":
-					_objectForCommand.Rotate(0, 0, -30);
-					break;
-				default:
-					Debug.Log("NOT FOUND COMAND IN LIST OF HANDLERS");
-					break;
-			}
+				Prompt = Instruction,
+				Model = "text-davinci-003",
+				MaxTokens = 4097 - Instruction.Length - 1
+			});
+
+			var resposta = completionResponse.Choices[0].Text;
+			Instruction += $"{resposta}\nQ: ";
+
+			Debug.Log("Resposta gpt3: " + resposta);
 		}
+
+
+
 	}
 }
