@@ -1,20 +1,23 @@
 ﻿using System;
 using UnityEngine;
 using UnityEngine.UI;
-
 using System.Threading.Tasks;
+using System.Collections.Generic;
+using System.Linq;
+using System.Globalization;
+
+using FrostweepGames.Plugins.Core;
+using FrostweepGames.Plugins.GoogleCloud.TextToSpeech;
 using OpenAI;
 
 namespace FrostweepGames.Plugins.GoogleCloud.SpeechRecognition.Examples
 {
 	public class GCSR_DoCommandsExample : MonoBehaviour
 	{
-		//OpenAI
-	    
-		private Text resultText;
+
 		private OpenAIApi openai = new OpenAIApi();
 		private string userInput;
-		private string Instruction = "Act as a random stranger in a chat room and reply to the questions.\nQ: ";
+		private string Instruction = "Always answer in English, with long responses.\nQ: ";
 
 		private GCSpeechRecognition _speechRecognition;
 
@@ -29,10 +32,11 @@ namespace FrostweepGames.Plugins.GoogleCloud.SpeechRecognition.Examples
 
 		private RectTransform _objectForCommand;
 
+		//TextToSpeech
+		private GCTextToSpeech _gcTextToSpeech;
+
 		private void Start()
 		{
-			//OpenAI
-			//SendReplyAsync("Initial prompt");
 
 
 			_speechRecognition = GCSpeechRecognition.Instance;
@@ -64,28 +68,10 @@ namespace FrostweepGames.Plugins.GoogleCloud.SpeechRecognition.Examples
 			_speechRecognitionState.color = Color.yellow;
 
 			_speechRecognition.RequestMicrophonePermission(null);
+
+			//TextToSpeech
+
 		}
-/**
-		private async Task<string> SendReplyAsync(string prompt)
-		{
-			Instruction += $"{resultText.text}\nA: ";
-
-			// Complete the instruction
-			var completionResponse = await openai.CreateCompletion(new CreateCompletionRequest()
-			{
-				Prompt = Instruction,
-				Model = "text-davinci-003",
-				MaxTokens = 4097 - Instruction.Length - 1
-			});
-
-			var resposta = completionResponse.Choices[0].Text;
-			Instruction += $"{resposta}\nQ: ";
-
-			Debug.Log("Resposta gpt3: " + resposta);
-
-			return resposta;
-		}
-**/
 
 		private void OnDestroy()
 		{
@@ -146,7 +132,10 @@ namespace FrostweepGames.Plugins.GoogleCloud.SpeechRecognition.Examples
 				return;
 
 			RecognitionConfig config = RecognitionConfig.GetDefault();
-			config.languageCode = Enumerators.LanguageCode.en_US.Parse();
+			//config.languageCode = Enumerators.LanguageCode.en_US.Parse();
+			config.languageCode = Enumerators.LanguageCode.pt_BR.Parse();
+			//config.languageCode = Enumerators.LanguageCode.es_ES.Parse();
+
 			config.audioChannelCount = clip.channels;
 			// configure other parameters of the config if need
 
@@ -185,7 +174,7 @@ namespace FrostweepGames.Plugins.GoogleCloud.SpeechRecognition.Examples
 				}
 			}
 
-			_resultText.text = resultText;
+			//_resultText.text = resultText;
 			Debug.Log(resultText);
 
 			Instruction += $"{resultText}\nA: ";
@@ -201,6 +190,7 @@ namespace FrostweepGames.Plugins.GoogleCloud.SpeechRecognition.Examples
 			Instruction += $"{resposta}\nQ: ";
 
 			Debug.Log("Resposta gpt3: " + resposta);
+			_resultText.text = resposta;
 		}
 
 

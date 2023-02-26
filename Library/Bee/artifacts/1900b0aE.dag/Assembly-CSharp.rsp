@@ -131,6 +131,7 @@
 -define:ENABLE_INPUT_SYSTEM
 -define:ENABLE_LEGACY_INPUT_MANAGER
 -define:FG_GCSR
+-define:FG_GCTTS
 -define:CSHARP_7_OR_LATER
 -define:CSHARP_7_3_OR_NEWER
 -r:"C:/Program Files/Unity/Hub/Editor/2023.1.0a9/Editor/Data/Managed/UnityEngine/UnityEditor.CoreModule.dll"
@@ -413,6 +414,17 @@
 "Assets/FrostweepGames/GCSpeechRecognition/Scripts/Core/Settings/Enumerators.cs"
 "Assets/FrostweepGames/GCSpeechRecognition/Scripts/Core/Utilites/AudioTools.cs"
 "Assets/FrostweepGames/GCSpeechRecognition/Scripts/GCSpeechRecognition.cs"
+"Assets/FrostweepGames/GCTextToSpeech/Examples/TutorialExample/GC_TextToSpeech_TutorialExample.cs"
+"Assets/FrostweepGames/GCTextToSpeech/Scripts/Core/Converters/Linear16AudioTool.cs"
+"Assets/FrostweepGames/GCTextToSpeech/Scripts/Core/Interfaces/IMediaManager.cs"
+"Assets/FrostweepGames/GCTextToSpeech/Scripts/Core/Interfaces/ITextToSpeechManager.cs"
+"Assets/FrostweepGames/GCTextToSpeech/Scripts/Core/Managers/MediaManager.cs"
+"Assets/FrostweepGames/GCTextToSpeech/Scripts/Core/Managers/TextToSpeechManager.cs"
+"Assets/FrostweepGames/GCTextToSpeech/Scripts/Core/Model/Model.cs"
+"Assets/FrostweepGames/GCTextToSpeech/Scripts/Core/Settings/Configs/GeneralConfig.cs"
+"Assets/FrostweepGames/GCTextToSpeech/Scripts/Core/Settings/Constants.cs"
+"Assets/FrostweepGames/GCTextToSpeech/Scripts/Core/Settings/Enumerators.cs"
+"Assets/FrostweepGames/GCTextToSpeech/Scripts/GCTextToSpeech.cs"
 "Assets/FrostweepGames/_Generic/Core/IService.cs"
 "Assets/FrostweepGames/_Generic/Core/ServiceLocator.cs"
 "Assets/FrostweepGames/_Generic/Networking/NetworkConstants.cs"
